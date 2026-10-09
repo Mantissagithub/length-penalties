@@ -30,19 +30,34 @@ held-out gsm8k greedy (128 questions, temperature 0):
 | deepseek | 65.6% | 171k | 0.49 |
 | **composer** | **65.6%** | **153k** | **0.55** |
 
-pass@4 (64 questions, temperature 0.8):
+strength ablation, gsm8k greedy (128 questions, temperature 0):
 
-| arm | gsm8k pass@4 | per-sample | math-500 pass@4 | per-sample |
-| --- | --- | --- | --- | --- |
-| frozen base | 82.8% | 54.3% | 17.2% | 7.8% |
-| baseline | 79.7% | 62.9% | 23.4% | 8.6% |
-| deepseek | 90.6% | 64.5% | 20.3% | 7.8% |
-| composer | 87.5% | 63.3% | **25.0%** | 9.0% |
+| arm | accuracy | total tokens |
+| --- | --- | --- |
+| frozen base | 58.6% | 168,890 |
+| baseline (no penalty) | 64.1% | 161,090 |
+| deepseek 0.125 | 63.3% | 162,194 |
+| deepseek 0.5 | 63.3% | 153,432 |
+| deepseek 0.75 | 64.8% | 160,465 |
+| composer 0.125 | 64.1% | 157,125 |
+| **composer 0.5** | **68.0%** | 157,844 |
+| composer 0.75 | 60.2% | 168,368 |
 
-Both penalties matched baseline accuracy; only the concave one used fewer
-tokens ($-10\%$ vs trained baseline; deepseek used more). Deltas between
-penalty arms are a few questions wide at this sample size — see paired
-bootstrap CIs in `runs/analysis-local/`.
+pass@4 (64 questions, temperature 0.8, gsm8k / math-500):
+
+| arm | gsm8k | math-500 |
+| --- | --- | --- |
+| frozen base | 82.8% | 17.2% |
+| baseline | 79.7% | 23.4% |
+| deepseek 0.5 | **90.6%** | 20.3% |
+| composer 0.5 | 87.5% | **25.0%** |
+
+Takeaway: at strength 0.5 the concave penalty is the best greedy arm
+(68.0%, $-7\%$ tokens vs baseline) and the best hard-set arm; the capped
+linear shape is nearly insensitive to strength. Pushing concave to 0.75
+overdoses it (60.2%) — it keeps charging past the anchor. Deltas between
+arms are a few questions wide at this sample size; paired bootstrap CIs are
+in `runs/analysis-local/`.
 
 ## reproducing
 

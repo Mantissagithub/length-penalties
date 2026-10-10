@@ -18,10 +18,36 @@ answer:
 - **composer** (`qwen_length.py --penalty composer`): $2 - 0.5\,g(L)/g(512)$,
   $g(L)=\frac{1-(1+L/512)^{1-q}}{(q-1)/512}$, $q=1.5$
 
-Both cost $-0.5$ at the anchor $T=512$. After the cap the linear one is flat.
-The concave one keeps charging, about $-1.14$ at 4096 tokens, still less than
-the $+2$ reward. Wrong or unfinished answers get $0$. Training ran TRL 1.15.0
-GRPO with colocated vLLM on one A100 40 GB, about 9 s per step, 15 min per arm.
+## the two formulations
+
+The reward only counts answers that finish thinking and parse to the right
+integer. For those, with thinking length $L$:
+
+$$r = 2 + r_{\text{length}}(L)$$
+
+**DeepSeek, capped linear.** The cost grows in proportion to length and stops
+at a cap:
+
+$$r_{\text{length}}(L) = -\min\!\left(\text{cap},\ \frac{\text{strength} \cdot L}{T}\right)$$
+
+Once a completion passes the cap it pays nothing extra, so very long answers
+feel no extra pressure. That is the known weak point.
+
+**Composer, concave.** A $q$-log curve with shape parameter $q>1$ and scale
+$\kappa$:
+
+$$g(L) = \frac{1-(1+\kappa L)^{1-q}}{\kappa\,(q-1)}, \qquad r_{\text{length}}(L) = -\text{anchor} \cdot \frac{g(L)}{g(T)}$$
+
+It grows forever but with a falling slope: cheap near the anchor, then a long
+tail that still matters at 4096 tokens. No cap, but the concave bend keeps it
+below the $+2$ reward.
+
+**Matching.** Both curves are scaled so they cost exactly the same at the
+anchor $T$, here 512 tokens. So the comparison is only about the shape, not
+the overall strength. In this run both cost $-0.5$ at $T$.
+
+Training ran TRL 1.15.0 GRPO with colocated vLLM on one A100 40 GB, about 9 s
+per step, 15 min per arm.
 
 ![thinking length over training](figures/fig_thinking_roll.png)
 ![correct rate over training](figures/fig_correct_roll.png)

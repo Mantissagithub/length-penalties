@@ -10,6 +10,10 @@ arm, so treat the results as a hint, not proof.
 A correct answer gets $2 + r_{\text{length}}(L)$, where $L$ is the number of
 thinking tokens. Wrong or unfinished answers get 0.
 
+Note: here the length penalty applies to correct answers only. Both reports
+add it to every response's reward, so long wrong answers are pushed to be
+shorter too. Here they get no length signal at all.
+
 - **DeepSeek (capped linear):** $r = -\min(\text{cap},\ \text{strength} \cdot L/T)$.
   Grows with length, then goes flat at the cap.
 - **Composer (concave):** $r = -\text{anchor} \cdot g(L)/g(T)$ with

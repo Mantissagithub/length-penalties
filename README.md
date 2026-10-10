@@ -67,6 +67,8 @@ Held-out gsm8k greedy (128 questions, temperature 0):
 
 Strength ablation, same gsm8k setup:
 
+![strength sweep](figures/fig_strength_sweep.png)
+
 | arm | accuracy | total tokens |
 | --- | --- | --- |
 | frozen base | 58.6% | 168,890 |
@@ -77,6 +79,11 @@ Strength ablation, same gsm8k setup:
 | composer 0.125 | 64.1% | 157,125 |
 | **composer 0.5** | **68.0%** | 157,844 |
 | composer 0.75 | 60.2% | 168,368 |
+
+pass@1 and pass@4 by strength:
+
+![pass@1 by strength](figures/fig_strength_pass1.png)
+![pass@4 by strength](figures/fig_strength_pass4.png)
 
 pass@4 (64 questions, temperature 0.8):
 
@@ -89,6 +96,11 @@ pass@4 (64 questions, temperature 0.8):
 
 ![gsm8k pass@4](figures/fig_pass4_gsm8k.png)
 ![math-500 pass@4](figures/fig_pass4_math500.png)
+
+ablation training curves:
+
+![thinking length, ablation arms](figures/fig_strength_thinking_roll.png)
+![correct rate, ablation arms](figures/fig_strength_correct_roll.png)
 
 ## what I take from this
 

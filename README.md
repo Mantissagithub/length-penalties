@@ -21,6 +21,15 @@ split: at 4096 tokens Composer costs more than twice as much.
 
 ![penalty shapes](figures/fig_penalty_shape.png)
 
+In [DeepSeek-V4.1-Flash](https://arxiv.org/abs/2609.19969) (sec. 5.1.4) the
+strength also depends on a requested reasoning effort $b$:
+$k(b) = k_0\, e^{-(b - b_{\min})/\tau}$. Higher effort means a gentler slope,
+so the line goes flat later, at $x = C/k(b)$ where $x = L/T$. This repo trains at one fixed
+effort, which is the $b = 25$ line below ($k_0$ and $\tau$ are illustrative,
+the report doesn't give them).
+
+![capped linear across effort levels vs concave](figures/fig_penalty_math.png)
+
 ## Setup
 
 Three arms that differ only in reward: **baseline** (no penalty,
@@ -132,3 +141,12 @@ Adapters on Hugging Face:
 Run archives are in
 `runs/logs/length-qwen17-run-38c53964/` and
 `runs/logs/length-qwen17-ablation-fd2b4145/` (gitignored).
+
+## References
+
+- DeepSeek-AI. *DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression*, 2026.
+  Capped linear length penalty with effort control, sec. 5.1.4 and app. C.
+  [![PDF](https://img.shields.io/badge/PDF-arXiv%202609.19969-B31B1B?logo=adobeacrobatreader&logoColor=white)](https://arxiv.org/pdf/2609.19969)
+- Cursor Research Team. *Composer 2 Technical Report*, 2026.
+  Concave length penalty $\frac{(1+kx)^{1-q}-1}{k(1-q)}$.
+  [![PDF](https://img.shields.io/badge/PDF-arXiv%202603.24477-B31B1B?logo=adobeacrobatreader&logoColor=white)](https://arxiv.org/pdf/2603.24477)

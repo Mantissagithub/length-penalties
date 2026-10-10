@@ -1,5 +1,7 @@
 # Thinking-Token Length Penalties: Capped-Linear vs Concave
 
+Blog post: [How the Shape of a Length Penalty Changes Reasoning](https://www.pradheep.dev/blogs/length-penalties)
+
 Can a length penalty make a reasoning model think less without getting worse?
 I trained `Qwen/Qwen3-1.7B` with GRPO on GSM8K using two penalty shapes,
 DeepSeek's capped linear and Composer's concave. One seed and 100 steps per

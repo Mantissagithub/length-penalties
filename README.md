@@ -1,27 +1,34 @@
 # thinking-token length penalties: capped-linear vs concave
 
-GRPO comparison of two length-penalty shapes on `Qwen/Qwen3-1.7B` (GSM8K):
-DeepSeek's **capped linear** penalty vs Composer's **concave** penalty.
-One seed, 100 steps per arm — blog-scale, not paper-grade.
+A small GRPO experiment on `Qwen/Qwen3-1.7B` with GSM8K. I compared two ways
+to penalize long thinking: DeepSeek's capped linear penalty and Composer's
+concave penalty. One seed, 100 steps per arm. This is a blog-scale run, so
+treat the numbers as a good hint, not a proof.
+
+![penalty shapes](figures/fig_penalty_shape.png)
 
 ## setup
 
-Three matched arms (same data order, seed, 4 completions per prompt,
-4096-token cap, LoRA rank 16). Reward for a correct, finished answer:
+Three to seven matched arms. Same data order, seed, group of 4 completions
+per prompt, 4096-token cap, LoRA rank 16. Reward for a correct, finished
+answer:
 
 - **baseline** (`qwen_normal.py`): $+2$
 - **deepseek** (`qwen_length.py --penalty deepseek`): $2 - \min(0.5,\ 0.5\,L/512)$
 - **composer** (`qwen_length.py --penalty composer`): $2 - 0.5\,g(L)/g(512)$,
   $g(L)=\frac{1-(1+L/512)^{1-q}}{(q-1)/512}$, $q=1.5$
 
-Both cost $-0.5$ at the anchor $T=512$. Past the cap the linear penalty is
-flat; the concave one keeps charging ($\approx -1.14$ at 4096, still below
-the $+2$ reward). Wrong or unfinished answers get $0$. Training: TRL 1.15.0
-GRPO + colocated vLLM on one A100 40 GB, ~9 s/step, ~15 min per arm.
+Both cost $-0.5$ at the anchor $T=512$. After the cap the linear one is flat.
+The concave one keeps charging, about $-1.14$ at 4096 tokens, still less than
+the $+2$ reward. Wrong or unfinished answers get $0$. Training ran TRL 1.15.0
+GRPO with colocated vLLM on one A100 40 GB, about 9 s per step, 15 min per arm.
+
+![thinking length over training](figures/fig_thinking_roll.png)
+![correct rate over training](figures/fig_correct_roll.png)
 
 ## results
 
-held-out gsm8k greedy (128 questions, temperature 0):
+Held-out gsm8k greedy (128 questions, temperature 0):
 
 | arm | accuracy | total tokens | correct per 1000 tokens |
 | --- | --- | --- | --- |
@@ -30,7 +37,9 @@ held-out gsm8k greedy (128 questions, temperature 0):
 | deepseek | 65.6% | 171k | 0.49 |
 | **composer** | **65.6%** | **153k** | **0.55** |
 
-strength ablation, gsm8k greedy (128 questions, temperature 0):
+![gsm8k greedy eval](figures/fig_eval_bars.png)
+
+Strength ablation, same gsm8k setup:
 
 | arm | accuracy | total tokens |
 | --- | --- | --- |
@@ -43,7 +52,7 @@ strength ablation, gsm8k greedy (128 questions, temperature 0):
 | **composer 0.5** | **68.0%** | 157,844 |
 | composer 0.75 | 60.2% | 168,368 |
 
-pass@4 (64 questions, temperature 0.8, gsm8k / math-500):
+pass@4 (64 questions, temperature 0.8):
 
 | arm | gsm8k | math-500 |
 | --- | --- | --- |
@@ -52,17 +61,26 @@ pass@4 (64 questions, temperature 0.8, gsm8k / math-500):
 | deepseek 0.5 | **90.6%** | 20.3% |
 | composer 0.5 | 87.5% | **25.0%** |
 
-Takeaway: at strength 0.5 the concave penalty is the best greedy arm
-(68.0%, $-7\%$ tokens vs baseline) and the best hard-set arm; the capped
-linear shape is nearly insensitive to strength. Pushing concave to 0.75
-overdoses it (60.2%) — it keeps charging past the anchor. Deltas between
-arms are a few questions wide at this sample size; paired bootstrap CIs are
-in `runs/analysis-local/`.
+![gsm8k pass@4](figures/fig_pass4_gsm8k.png)
+![math-500 pass@4](figures/fig_pass4_math500.png)
+
+## what I take from this
+
+Both penalties matched baseline accuracy, but only the concave one actually
+used fewer tokens, about 10% less than the trained baseline. The capped
+linear one barely changed length at all, because most answers sat inside its
+cap. Composer at 0.5 was the best greedy arm and the best on hard math-500.
+Pushing it to 0.75 was too much (60.2%), since the concave curve keeps
+charging past the anchor. DeepSeek had the best gsm8k pass@4.
+
+Honest limit: deltas between the penalty arms are a few questions wide at
+128 questions, and this is one seed. Paired bootstrap CIs are in
+`runs/analysis-local/`.
 
 ## reproducing
 
 ```bash
-# train (each arm ~15 min on one A100 40 GB)
+# train, each arm about 15 min on one A100 40 GB
 accelerate launch qwen_normal.py --model qwen-small --use-vllm   --dataset gsm8k --steps 100 --max-completion-length 4096   --norm 512 --composer-k 0.001953125 --seed 42 --output runs/arms/base
 # penalty arms: qwen_length.py plus --penalty deepseek --strength 0.5 --cap 0.5
 #               (or --penalty composer), same other flags
@@ -74,6 +92,7 @@ python plot.py --logs runs/arms/*/reward_samples.jsonl --outdir figures
 
 Adapters on HF: `Pradheep1647/grpo-think-len-baseline`,
 `Pradheep1647/grpo-think-len-capped-linear`,
-`Pradheep1647/grpo-think-len-concave`. Verified run archive (logs, configs,
-rewards, checkpoints, evals) is in `runs/logs/length-qwen17-run-38c53964/`;
-`runs/` is gitignored.
+`Pradheep1647/grpo-think-len-concave`. The verified run archive (logs,
+configs, rewards, checkpoints, evals) is under
+`runs/logs/length-qwen17-run-38c53964/` and
+`runs/logs/length-qwen17-ablation-fd2b4145/`. `runs/` is gitignored.

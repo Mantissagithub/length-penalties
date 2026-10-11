@@ -140,9 +140,9 @@ python plot.py && python fig_sweep.py && python fig_strength_bars.py && python f
 
 Adapters on Hugging Face:
 
-[![baseline](https://img.shields.io/badge/%F0%9F%A4%97%20baseline-FFD21E?style=flat)](https://huggingface.co/Pradheep1647/grpo-think-len-baseline)
-[![capped-linear](https://img.shields.io/badge/%F0%9F%A4%97%20capped--linear-FFD21E?style=flat)](https://huggingface.co/Pradheep1647/grpo-think-len-capped-linear)
-[![concave](https://img.shields.io/badge/%F0%9F%A4%97%20concave-FFD21E?style=flat)](https://huggingface.co/Pradheep1647/grpo-think-len-concave)
+- <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" width="18" height="18" alt="Hugging Face"> **baseline**: [Pradheep1647/grpo-think-len-baseline](https://huggingface.co/Pradheep1647/grpo-think-len-baseline)
+- <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" width="18" height="18" alt="Hugging Face"> **capped-linear**: [Pradheep1647/grpo-think-len-capped-linear](https://huggingface.co/Pradheep1647/grpo-think-len-capped-linear)
+- <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" width="18" height="18" alt="Hugging Face"> **concave**: [Pradheep1647/grpo-think-len-concave](https://huggingface.co/Pradheep1647/grpo-think-len-concave)
 
 Run archives are in
 `runs/logs/length-qwen17-run-38c53964/` and
